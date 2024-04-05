@@ -6,6 +6,7 @@
         echo "<p>" . $_SESSION['message'] . "</p>";
         unset($_SESSION['message']); // Clear the message after displaying it
     }
+
 ?>
 
 <!DOCTYPE html>
@@ -27,10 +28,35 @@
 <div><b>Employee ID:</b> <?= $_SESSION['id']?> </div>
 <div>
     <form action="clock_action.php" method="post">
-        <button type="submit" name="action" value="clockIn">Clock In</button>
-        <button type="submit" name="action" value="clockOut">Clock Out</button>
-    </form>
+        <label for="notaries">Notaries:</label>
+        <input type="number" id="notaries" name="notaries" required><br>
+        <label for="mailboxes">Mailboxes:</label>
+        <input type="number" id="mailboxes" name="mailboxes" required><br>
+        <button type="submit" name="action" value="clockIn" id="clockInButton">Clock In</button>
+        <button type="submit" name="action" value="clockOut" id="clockOutButton" disabled>Clock Out</button>
+  </form>
 </div>
+
+<script>
+  const notariesInput = document.getElementById("notaries");
+  const mailboxesInput = document.getElementById("mailboxes");
+  const clockOutButton = document.getElementById("clockOutButton");
+
+  function checkInputs() {
+    if (notariesInput.value !== "" && mailboxesInput.value !== "") {
+      clockOutButton.disabled = false;
+    } else {
+      clockOutButton.disabled = true;
+    }
+  }
+
+  notariesInput.addEventListener("input", checkInputs);
+  mailboxesInput.addEventListener("input", checkInputs);
+
+  // Check initial state on page load
+  checkInputs();
+</script>
     
 </body>
+</html>
 </html>
