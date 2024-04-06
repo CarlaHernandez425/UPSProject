@@ -125,9 +125,39 @@ if ($_SESSION['IsAdmin'] == 1) {
 
             echo "</table><br>"; // Space between months
         }
+        //Sales Trends Section
+        // Dropdown for selecting the trend type
+        echo "<div>";
+        echo "<h1>Select Sales Trend Period</h1>";
+        echo "<select id='trendSelect'>
+                <option value='daily'>Daily</option>
+                <option value='monthly'>Monthly</option>
+                <option value='yearly'>Yearly</option>
+            </select>";
+        echo "</div>";
+
+        // Container to display trend results
+        echo "<div id='trendResults'></div>";
 
         ?>
+        <script>
+        document.getElementById('trendSelect').addEventListener('change', function() {
+            var trendType = this.value;
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'sales_trends.php', true);
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 
+            xhr.onload = function() {
+                if (this.status == 200) {
+                    document.getElementById('trendResults').innerHTML = this.responseText;
+                } else {
+                    document.getElementById('trendResults').innerHTML = "Error loading data.";
+                }
+            };
+
+            xhr.send('trendType=' + trendType);
+        });
+        </script>
 
         </body>
         </html>
