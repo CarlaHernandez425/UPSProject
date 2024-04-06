@@ -9,16 +9,31 @@ if ($_SESSION['IsAdmin'] == 1 && isset($_POST['trendType'])) {
 
     switch ($trendType) {
         case 'daily':
-            $query = "SELECT SaleDate, SUM(SaleAmount) AS TotalSales FROM sales GROUP BY SaleDate ORDER BY SaleDate DESC";
+            $query = "SELECT Date AS SaleDate, 
+                             TotalTendered, 
+                             TotalDeposited, 
+                             (TotalTendered + TotalDeposited) AS TotalSales
+                      FROM DailySales
+                      ORDER BY SaleDate DESC";
             break;
         case 'monthly':
-            $query = "SELECT YEAR(SaleDate) AS Year, MONTH(SaleDate) AS Month, SUM(SaleAmount) AS TotalSales
-                FROM sales
-                GROUP BY YEAR(SaleDate), MONTH(SaleDate)
-                ORDER BY Year, Month DESC";
+            $query = "SELECT YEAR(Date) AS Year, 
+                             MONTH(Date) AS Month, 
+                             SUM(TotalTendered) AS TotalTendered, 
+                             SUM(TotalDeposited) AS TotalDeposited, 
+                             SUM(TotalTendered + TotalDeposited) AS TotalSales
+                      FROM DailySales
+                      GROUP BY YEAR(Date), MONTH(Date)
+                      ORDER BY Year DESC, Month DESC";
             break;
         case 'yearly':
-            $query = "SELECT YEAR(SaleDate) AS Year, SUM(SaleAmount) AS TotalSales FROM sales GROUP BY Year ORDER BY Year DESC";
+            $query = "SELECT YEAR(Date) AS Year, 
+                             SUM(TotalTendered) AS TotalTendered, 
+                             SUM(TotalDeposited) AS TotalDeposited, 
+                             SUM(TotalTendered + TotalDeposited) AS TotalSales
+                      FROM DailySales
+                      GROUP BY Year
+                      ORDER BY Year DESC";
             break;
     }
 
