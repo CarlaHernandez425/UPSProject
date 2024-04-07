@@ -1,3 +1,5 @@
+
+
 <?php
     session_start();
     include './private/debug.php';
@@ -37,46 +39,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #f0f2f5;
+        }
+        .container {
+            padding-top: 20px;
+        }
+        .shadow-sm {
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .rounded-3 {
+            border-radius: 0.75rem;
+        }
+        .mb-4, .my-4 {
+            margin-bottom: 1.5rem!important;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="text-center mb-4">
+            <a href="manager.php" class="btn btn-primary">Manager Access Portal</a>
+        </div>
 
-<div style="text-align: center;">
-    <a href="manager.php">Manager Access Portal</a>
-</div>
-
-<div><h3>Clock-In / Clock-Out</h3></div>
-<div><b>Employee Name:</b> <?= $_SESSION['name']?> </div>
-<div><b>Employee ID:</b> <?= $_SESSION['id']?> </div>
-<div>
-    <form action="clock_action.php" method="post">
-        <label for="notaries">Notaries:</label>
-        <input type="number" id="notaries" name="notaries" required><br>
-        <label for="mailboxes">Mailboxes:</label>
-        <input type="number" id="mailboxes" name="mailboxes" required><br>
-        <button type="submit" name="action" value="clockIn" id="clockInButton">Clock In</button>
-        <button type="submit" name="action" value="clockOut" id="clockOutButton" disabled>Clock Out</button>
-    </form>
-</div>
-
+        <div class="bg-white p-4 shadow-sm rounded-3 mb-4">
+            <div><h3>Clock-In / Clock-Out</h3></div>
+            <div><b>Employee Name:</b> <?= $_SESSION['name']?> </div>
+            <div><b>Employee ID:</b> <?= $_SESSION['id']?> </div>
+            <div class="mt-3">
+                <form action="clock_action.php" method="post" class="row g-3">
+                    <div class="col-auto">
+                        <label for="notaries" class="visually-hidden">Notaries:</label>
+                        <input type="number" class="form-control" id="notaries" name="notaries" placeholder="Notaries" required>
+                    </div>
+                    <div class="col-auto">
+                        <label for="mailboxes" class="visually-hidden">Mailboxes:</label>
+                        <input type="number" class="form-control" id="mailboxes" name="mailboxes" placeholder="Mailboxes" required>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" name="action" value="clockIn" id="clockInButton" class="btn btn-primary mb-3">Clock In</button>
+                        <button type="submit" name="action" value="clockOut" id="clockOutButton" class="btn btn-secondary mb-3" disabled>Clock Out</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
 <!-- Request Time-Off Section -->
-<div><h3>Request Time-Off</h3></div>
-<div>
-    <form action="clock_action.php" method="post">
-        <div>
-            <label for="start-date">From:</label>
-            <input type="date" id="start-date" name="start_date" required>
+<div class="bg-white p-4 shadow-sm rounded-3 mb-4">
+    <h3>Request Time-Off</h3>
+    <form action="clock_action.php" method="post" class="row g-3">
+        <div class="col-md-6">
+            <label for="start-date" class="form-label">From:</label>
+            <input type="date" id="start-date" name="start_date" class="form-control" required>
         </div>
-        <div>
-            <label for="end-date">To:</label>
-            <input type="date" id="end-date" name="end_date" required>
+        <div class="col-md-6">
+            <label for="end-date" class="form-label">To:</label>
+            <input type="date" id="end-date" name="end_date" class="form-control" required>
         </div>
-        <button type="submit" name="action" value="requestTimeOff">Submit Request</button>
+        <div class="col-12">
+            <button type="submit" name="action" value="requestTimeOff" class="btn btn-primary">Submit Request</button>
+        </div>
     </form>
 </div>
 
+<div class="bg-white p-4 shadow-sm rounded-3 mb-4">
+    <h3>Submitted Time-Off Requests</h3>
 <?php
-echo "<h3>Submitted Time-Off Requests</h3>";
-
 // Query for the logged-in employee's vacation requests
 $vacationQuery = "SELECT start_date, end_date, status FROM employee_vacations WHERE employee_id = ? ORDER BY request_date DESC";
 if ($stmt = $con->prepare($vacationQuery)) {
@@ -86,6 +117,7 @@ if ($stmt = $con->prepare($vacationQuery)) {
 
     if ($result->num_rows > 0) {
         echo "<table border='1'>";
+        echo "<table class='table table-striped'>";
         echo "<tr><th>From</th><th>To</th><th>Status</th></tr>";
         while ($row = $result->fetch_assoc()) {
             echo "<tr>";
@@ -103,7 +135,8 @@ if ($stmt = $con->prepare($vacationQuery)) {
     echo "Error preparing statement: " . $con->error;
 }
 ?>
-
+</div>
+<div class="bg-white p-4 shadow-sm rounded-3 mb-4">
 <div><h3>Upcoming Shifts</h3></div>
 <div>
     <?php
@@ -118,6 +151,7 @@ if ($stmt = $con->prepare($vacationQuery)) {
         
         if ($shiftsResult->num_rows > 0) {
             echo "<table border='1' style='width: 100%; margin-top: 20px;'>";
+            echo "<table class='table table-striped'>";
             echo "<tr><th>Date</th><th>Scheduled Start</th><th>Scheduled End</th><th>Actual Start</th><th>Actual End</th></tr>";
             while ($shiftRow = $shiftsResult->fetch_assoc()) { // Use a distinct variable for the fetched row
                 echo "<tr>";
@@ -134,6 +168,7 @@ if ($stmt = $con->prepare($vacationQuery)) {
         }
         $shiftsQuery->close();
     ?>
+</div>
 </div>
 
 <script>
