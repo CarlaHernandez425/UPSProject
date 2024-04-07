@@ -125,7 +125,44 @@ if ($_SESSION['IsAdmin'] == 1) {
 
             echo "</table><br>"; // Space between months
         }
+        ?>
 
+        <!-- Vacation Requests Section -->
+        <div><h2>Vacation Requests</h2></div>
+        <?php
+            $vacationRequestsQuery = "SELECT v.vacation_id, v.employee_id, v.start_date, v.end_date, v.status, e.FirstName, e.LastName 
+                              FROM employee_vacations v 
+                              JOIN employees e ON v.employee_id = e.EmployeeID
+                              WHERE v.status = 'pending' 
+                              ORDER BY v.request_date DESC";
+            if ($vacationResult = $con->query($vacationRequestsQuery)) {
+                 if ($vacationResult->num_rows > 0) {
+                    echo "<table border='1'>";
+                    echo "<tr><th>Employee</th><th>From</th><th>To</th><th>Action</th></tr>";
+                    while ($row = $vacationResult->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . htmlspecialchars($row['FirstName']) . " " . htmlspecialchars($row['LastName']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['start_date']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['end_date']) . "</td>";
+                        echo "<td>
+                            <form action='vacation_request_action.php' method='post'>
+                                <input type='hidden' name='vacation_id' value='" . $row['vacation_id'] . "'>
+                                <button type='submit' name='action' value='approve'>Approve</button>
+                                <button type='submit' name='action' value='deny'>Deny</button>
+                            </form>
+                        </td>";
+                        echo "</tr>";
+                    }
+                 echo "</table>";
+                } else {
+                    echo "<p>No pending vacation requests.</p>";
+                }
+            } else {
+                echo "Error fetching vacation requests: " . $con->error;
+            }
+        ?>
+
+    <?php
         //Sales Trends Section
         // Dropdown for selecting the trend type
         echo "<div>";
@@ -140,7 +177,7 @@ if ($_SESSION['IsAdmin'] == 1) {
         // Container to display trend results
         echo "<div id='trendResults'></div>";
 
-        ?>
+    ?>
         <script>
         document.getElementById('trendSelect').addEventListener('change', function() {
             var trendType = this.value;
