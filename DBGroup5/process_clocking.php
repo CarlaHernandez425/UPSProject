@@ -29,12 +29,27 @@ if ($action == 'clockIn') {
 
     // Example for handling bonuses upon clock out, adjust according to your schema and logic
     // Ensure variables like $notaries and $mailboxes are properly validated and sanitized before use
-    if (isset($_POST['notaries']) && $_POST['notaries'] >= 0) {
-        // Insert bonus logic here
+    $notaries = isset($_POST['notaries']) ? $_POST['notaries'] : 0;
+    $mailboxes = isset($_POST['mailboxes']) ? $_POST['mailboxes'] : 0;
+    if ($notaries >= 0) {
+        $bonusType = "Notary";
+        $bonusAmount = $notaries;
+        // Insert into Bonuses table
+        $bonusSQL = "INSERT INTO Bonuses (EmployeeID, BonusType, BonusAmount, BonusDate) VALUES (?,?,?,?)";
+        $stmt = $con->prepare($bonusSQL);
+        $stmt->bind_param('isds', $employeeId, $bonusType, $bonusAmount, $currentDate);
+        $stmt->execute();
     }
-
-    if (isset($_POST['mailboxes']) && $_POST['mailboxes'] >= 0) {
-        // Insert bonus logic here
+    
+    // Handle Mailboxes
+    if ($mailboxes >= 0) {
+        $bonusType = "Mailbox";
+        $bonusAmount = $mailboxes;
+        // Insert into Bonuses table
+        $bonusSQL2 = "INSERT INTO Bonuses (EmployeeID, BonusType, BonusAmount, BonusDate) VALUES (?,?,?,?)";
+        $stmt = $con->prepare($bonusSQL2);
+        $stmt->bind_param('isds', $employeeId, $bonusType, $bonusAmount, $currentDate);
+        $stmt->execute();
     }
 } else {
     die('Invalid action.');

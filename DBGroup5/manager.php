@@ -200,15 +200,54 @@ if ($_SESSION['IsAdmin'] == 1) {
 
         </body>
         </html>
-        
+ 
         <?php
 
-        } else {
+            // Add New Employee Section
+            echo "<div><h2>Add New Employee</h2></div>";
+            echo "<form action='' method='post'>";
+            echo "<input type='text' name='firstName' placeholder='First Name' required>";
+            echo "<input type='text' name='lastName' placeholder='Last Name' required>";
+            echo "<input type='text' name='username' placeholder='Username' required>";
+            echo "<input type='password' name='password' placeholder='Password' required>";
+            echo "<select name='isAdmin'>";
+            echo "<option value='1'>Admin</option>";
+            echo "<option value='0'>Non-Admin</option>";
+            echo "</select>";
+            echo "<select name='isActive'>";
+            echo "<option value='1'>Yes</option>";
+            echo "<option value='0'>No</option>";
+            echo "</select>";
+            echo "<button type='submit' name='addEmployee'>Add Employee</button>";
+            echo "</form>";
 
-            echo '<h3>You are not authorized to view this page</h3>';
-            echo 'Back to employee dashboard <-- make a link here!'; 
-        }
-    ?>
+            if(isset($_POST['addEmployee'])) {
+                $firstName = $_POST['firstName'];
+                $lastName = $_POST['lastName'];
+                $username = $_POST['username'];
+                $password = $_POST['password']; 
+                $isActive = $_POST['isActive'];
+                $isAdmin = $_POST['isAdmin'];
+
+                // Insert into database
+                $insertQuery = "INSERT INTO employees (FirstName, LastName, Username, Password, IsActive, IsAdmin) VALUES (?, ?, ?, ?, ?, ?)";
+                if($stmt = $con->prepare($insertQuery)) {
+                $stmt->bind_param("ssssii", $firstName, $lastName, $username, $password, $isActive, $isAdmin);
+                $stmt->execute();
+                echo "New employee added successfully.";
+                $stmt->close();
+                } else {
+                    echo "Error: " . $con->error;
+                }
+            }
+
+
+            } else {
+
+                echo '<h3>You are not authorized to view this page</h3>';
+                echo 'Back to employee dashboard <-- make a link here!'; 
+            }
+        ?>
 
 
 
