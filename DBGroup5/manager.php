@@ -125,21 +125,161 @@ if ($_SESSION['IsAdmin'] == 1) {
 
             echo "</table><br>"; // Space between months
         }
-
         ?>
+
+        <!-- Vacation Requests Section -->
+        <div><h2>Vacation Requests</h2></div>
+        <?php
+            $vacationRequestsQuery = "SELECT v.vacation_id, v.employee_id, v.start_date, v.end_date, v.status, e.FirstName, e.LastName 
+                              FROM employee_vacations v 
+                              JOIN employees e ON v.employee_id = e.EmployeeID
+                              WHERE v.status = 'pending' 
+                              ORDER BY v.request_date DESC";
+            if ($vacationResult = $con->query($vacationRequestsQuery)) {
+                 if ($vacationResult->num_rows > 0) {
+                    echo "<table border='1'>";
+                    echo "<tr><th>Employee</th><th>From</th><th>To</th><th>Action</th></tr>";
+                    while ($row = $vacationResult->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . htmlspecialchars($row['FirstName']) . " " . htmlspecialchars($row['LastName']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['start_date']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['end_date']) . "</td>";
+                        echo "<td>
+                            <form action='vacation_request_action.php' method='post'>
+                                <input type='hidden' name='vacation_id' value='" . $row['vacation_id'] . "'>
+                                <button type='submit' name='action' value='approve'>Approve</button>
+                                <button type='submit' name='action' value='deny'>Deny</button>
+                            </form>
+                        </td>";
+                        echo "</tr>";
+                    }
+                 echo "</table>";
+                } else {
+                    echo "<p>No pending vacation requests.</p>";
+                }
+            } else {
+                echo "Error fetching vacation requests: " . $con->error;
+            }
+        ?>
+       <!-- Shift Switch Section -->
+       <div><h2>Shift Switch Requests</h2></div>
+        <?php
+            $switchRequestsQuery = "SELECT s_s.requestid, s_s.employeeid, s_s.switchdate, s_s.requestdate, s_s.status, e.FirstName, e.LastName 
+                              FROM shift_switch s_s 
+                              JOIN employees e ON s_s.employeeid = e.EmployeeID
+                              WHERE s_s.status = 'pending' 
+                              ORDER BY s_s.requestdate DESC";
+            if ($switchResult = $con->query($switchRequestsQuery)) {
+                 if ($switchResult->num_rows > 0) {
+                    echo "<table border='1'>";
+                    echo "<tr><th>Employee</th><th>From</th><th>To</th><th>Action</th></tr>";
+                    while ($row = $switchResult->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . htmlspecialchars($row['FirstName']) . " " . htmlspecialchars($row['LastName']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['switchdate']) . "</td>";
+                        echo "<td>
+                            <form action='switch_request_action.php' method='post'>
+                                <input type='hidden' name='requestid' value='" . $row['requestid'] . "'>
+                                <button type='submit' name='action' value='approve'>Approve</button>
+                                <button type='submit' name='action' value='deny'>Deny</button>
+                            </form>
+                        </td>";
+                        echo "</tr>";
+                    }
+                 echo "</table>";
+                } else {
+                    echo "<p>No pending shift switch requests.</p>";
+                }
+            } else {
+                echo "Error fetching shift switch requests: " . $con->error;
+            }
+        ?>
+    <?php
+        //Sales Trends Section
+        // Dropdown for selecting the trend type
+        echo "<div>";
+        echo "<h1>Select Sales Trend Period</h1>";
+        echo "<select id='trendSelect'>
+                <option value='daily'>Daily</option>
+                <option value='monthly'>Monthly</option>
+                <option value='yearly'>Yearly</option>
+            </select>";
+        echo "</div>";
+
+        // Container to display trend results
+        echo "<div id='trendResults'></div>";
+
+    ?>
+        <script>
+        document.getElementById('trendSelect').addEventListener('change', function() {
+            var trendType = this.value;
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'sales_trends.php', true);
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+            xhr.onload = function() {
+                if (this.status == 200) {
+                    document.getElementById('trendResults').innerHTML = this.responseText;
+                } else {
+                    document.getElementById('trendResults').innerHTML = "Error loading data.";
+                }
+            };
+
+            xhr.send('trendType=' + trendType);
+        });
+        </script>
 
 
         </body>
         </html>
-        
+ 
         <?php
 
-        } else {
+            // Add New Employee Section
+            echo "<div><h2>Add New Employee</h2></div>";
+            echo "<form action='' method='post'>";
+            echo "<input type='text' name='firstName' placeholder='First Name' required>";
+            echo "<input type='text' name='lastName' placeholder='Last Name' required>";
+            echo "<input type='text' name='username' placeholder='Username' required>";
+            echo "<input type='password' name='password' placeholder='Password' required>";
+            echo "<select name='isAdmin'>";
+            echo "<option value='1'>Admin</option>";
+            echo "<option value='0'>Non-Admin</option>";
+            echo "</select>";
+            echo "<select name='isActive'>";
+            echo "<option value='1'>Yes</option>";
+            echo "<option value='0'>No</option>";
+            echo "</select>";
+            echo "<button type='submit' name='addEmployee'>Add Employee</button>";
+            echo "</form>";
 
-            echo '<h3>You are not authorized to view this page</h3>';
-            echo 'Back to employee dashboard <-- make a link here!'; 
-        }
-    ?>
+            if(isset($_POST['addEmployee'])) {
+                $firstName = $_POST['firstName'];
+                $lastName = $_POST['lastName'];
+                $username = $_POST['username'];
+                $password = $_POST['password']; 
+                $isActive = $_POST['isActive'];
+                $isAdmin = $_POST['isAdmin'];
+
+                // Insert into database
+                $insertQuery = "INSERT INTO employees (FirstName, LastName, Username, Password, IsActive, IsAdmin) VALUES (?, ?, ?, ?, ?, ?)";
+                if($stmt = $con->prepare($insertQuery)) {
+                $stmt->bind_param("ssssii", $firstName, $lastName, $username, $password, $isActive, $isAdmin);
+                $stmt->execute();
+                echo "New employee added successfully.";
+                $stmt->close();
+                } else {
+                    echo "Error: " . $con->error;
+                }
+            }
+
+
+            } else {
+
+                echo '<h3>You are not authorized to view this page</h3>';
+                echo 'Back to employee dashboard <-- make a link here!'; 
+            }
+        ?>
 
 
 
