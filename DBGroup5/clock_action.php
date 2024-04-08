@@ -46,7 +46,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         header('Location: dashboard.php');
         exit();
     }
+            //shift switching based off of vacation request
+    if ($action === 'switchShift') {
+            $switchdate = $_POST['shift_date'];
+            $requestDate = date('Y-m-d');
     
+            $switchQuery = "INSERT INTO shift_switch (employeeid, switchdate, requestdate, status) VALUES(?, ?, ?, 'pending')";
+            if ($switchStmt = $con->prepare($switchQuery)) {
+                $switchStmt->bind_param('iss', $employeeId, $switchdate, $requestDate);
+                $switchStmt->execute();
+    
+                if ($switchStmt->error) {
+                    $_SESSION['message'] = "Error submitting shift for switching:" . $switchStmt->error;
+                } else {
+                    $_SESSION['message'] = "Shift switch submitted successfully.";
+                }
+                $switchStmt->close();
+            } else {
+                //error in preparing statement
+                error_log("MySQL Error: " . $con->error);
+                $_SESSION['message'] = "Error in preparing the shift-switch request SQL statement.";
+            }
+            
+            header('Location: dashboard.php');
+            exit();
+        }
+    if ($action === 'acceptShiftSwitch') {
+        $switchdate = $_POST['switch_date'];
+        $requestDate = date('Y-m-d');
+        
+        // Directly execute the SQL query without preparing it
+        $switchQuery = "INSERT INTO shifts (EmployeeID, ShiftDate) VALUES($employeeId, '$switchdate')";
+        if ($con->query($switchQuery) === TRUE) {
+            $_SESSION['message'] = "Shift switch submitted successfully. $employeeId";
+        } else {
+            $_SESSION['message'] = "Error submitting shift for switching: " . $con->error;
+        }
+        
+        header('Location: dashboard.php');
+        exit();
+        
+    }
     
     // Proceed with clocking in or out logic if not a time-off request
     include './process_clocking.php'; // Assumes clocking logic is moved to a separate include file for cleanliness

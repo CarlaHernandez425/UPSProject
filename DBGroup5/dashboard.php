@@ -169,6 +169,60 @@ if ($stmt = $con->prepare($vacationQuery)) {
         $shiftsQuery->close();
     ?>
 </div>
+<!-- Offer Shift -->
+<div class="bg-white p-4 shadow-sm rounded-3 mb-4">
+    <h3>Switch Shift</h3>
+    <form action="clock_action.php" method="post" class="row g-3">
+        <div class="col-md-6">
+            <label for="shift-date" class="form-label">From:</label>
+            <input type="date" id="shift-date" name="shift_date" class="form-control" required>
+        </div>
+        <div class="col-12">
+            <button type="submit" name="action" value="switchShift" class="btn btn-primary">Submit Request</button>
+        </div>
+    </form>
+</div>
+<!--Available Shifts -->
+<div class="bg-white p-4 shadow-sm rounded-3 mb-4">
+    <h3>Available Shifts</h3>
+    <?php 
+        $stmt = $con->prepare("SELECT * FROM shift_switch WHERE SwitchDate >= CURDATE() ORDER BY SwitchDate ASC");
+        $stmt->execute();
+        $shiftsResult = $stmt->get_result();        
+        
+        if ($shiftsResult->num_rows > 0) {
+            echo "<table border='1' style='width: 100%; margin-top: 20px;'>";
+            echo "<table class='table table-striped'>";
+            echo "<tr>
+                    <th>Available Shift</th>
+                    <th>Date Submitted</th>
+                    <th>Actions</th>
+                 </tr>";
+            while ($shiftRow = $shiftsResult->fetch_assoc()) { // Use a distinct variable for the fetched row
+                echo "<tr>";
+                echo "  <td>" . htmlspecialchars($shiftRow['SwitchDate']) . "</td>";
+                echo "  <td>" . htmlspecialchars($shiftRow['RequestDate']) . "</td>";
+                echo "<td>";
+                $_SESSION['SwitchDate'] = htmlspecialchars($shiftRow['SwitchDate']);
+                // Form for accepting the shift switch
+                echo "<form action='clock_action.php' method='post'>";
+                // Hidden input fields to capture ShiftID and current user's EmployeeID
+                echo "<input type='hidden' name='shift_id' value='" . $shiftRow['RequestID'] . "'>";
+                echo "<input type='hidden' name='employee_id' value='" . $_SESSION['id'] . "'>";
+                echo "<input type='hidden' name='switch_date' value='" . $_SESSION['SwitchDate'] . "'>";
+                echo "<button type='submit' name='action' value='acceptShiftSwitch' class='btn btn-primary'>Accept Shift</button>";
+                echo "</form>";
+                echo "</td>";
+                echo "</tr>";
+            }
+            echo "</table>";
+        } else {
+            echo "<p>No upcoming shifts found.</p>";
+        }
+    ?>
+</div>
+
+
 </div>
 
 <script>

@@ -161,7 +161,39 @@ if ($_SESSION['IsAdmin'] == 1) {
                 echo "Error fetching vacation requests: " . $con->error;
             }
         ?>
-
+       <!-- Shift Switch Section -->
+       <div><h2>Shift Switch Requests</h2></div>
+        <?php
+            $switchRequestsQuery = "SELECT s_s.requestid, s_s.employeeid, s_s.switchdate, s_s.requestdate, s_s.status, e.FirstName, e.LastName 
+                              FROM shift_switch s_s 
+                              JOIN employees e ON s_s.employeeid = e.EmployeeID
+                              WHERE s_s.status = 'pending' 
+                              ORDER BY s_s.requestdate DESC";
+            if ($switchResult = $con->query($switchRequestsQuery)) {
+                 if ($switchResult->num_rows > 0) {
+                    echo "<table border='1'>";
+                    echo "<tr><th>Employee</th><th>From</th><th>To</th><th>Action</th></tr>";
+                    while ($row = $switchResult->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . htmlspecialchars($row['FirstName']) . " " . htmlspecialchars($row['LastName']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['switchdate']) . "</td>";
+                        echo "<td>
+                            <form action='switch_request_action.php' method='post'>
+                                <input type='hidden' name='requestid' value='" . $row['requestid'] . "'>
+                                <button type='submit' name='action' value='approve'>Approve</button>
+                                <button type='submit' name='action' value='deny'>Deny</button>
+                            </form>
+                        </td>";
+                        echo "</tr>";
+                    }
+                 echo "</table>";
+                } else {
+                    echo "<p>No pending shift switch requests.</p>";
+                }
+            } else {
+                echo "Error fetching shift switch requests: " . $con->error;
+            }
+        ?>
     <?php
         //Sales Trends Section
         // Dropdown for selecting the trend type
